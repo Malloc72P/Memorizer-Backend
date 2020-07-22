@@ -10,6 +10,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
 import { ServerSetting } from './Config/server-setting';
 import { AuthCallbackController } from './Controller/auth-callback/auth-callback.controller';
+import { SectionSchema } from './Model/DTO/SectionDto/section.schema';
+import { SectionController } from './Controller/section-controller/section.controller';
+import { SectionDaoService } from './Model/DAO/section-dao/section-dao.service';
 
 @Module({
   imports: [
@@ -25,11 +28,16 @@ import { AuthCallbackController } from './Controller/auth-callback/auth-callback
           name: "USERS_MODEL",
           schema: UsersSchema
         },
+        {
+          name: "SECTION_MODEL",
+          schema: SectionSchema
+        },
       ]),
   ],
   controllers: [
     AppController,
-    AuthCallbackController
+    AuthCallbackController,
+    SectionController
   ],
   providers: [
     AppService,
@@ -44,6 +52,7 @@ import { AuthCallbackController } from './Controller/auth-callback/auth-callback
     /* Data Access Object START */
     /* *************************************************** */
     UserDaoService,
+    SectionDaoService
   ],
 })
 export class AppModule {}
