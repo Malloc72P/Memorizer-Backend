@@ -13,6 +13,7 @@ import { AuthCallbackController } from './Controller/auth-callback/auth-callback
 import { SectionSchema } from './Model/DTO/SectionDto/section.schema';
 import { SectionController } from './Controller/section-controller/section.controller';
 import { SectionDaoService } from './Model/DAO/section-dao/section-dao.service';
+import { ErrorHandlerService } from './Model/error-handler/error-handler.service';
 
 @Module({
   imports: [
@@ -52,7 +53,11 @@ import { SectionDaoService } from './Model/DAO/section-dao/section-dao.service';
     /* Data Access Object START */
     /* *************************************************** */
     UserDaoService,
-    SectionDaoService
+    SectionDaoService,
+    /* *************************************************** */
+    /* Handler Service START */
+    /* *************************************************** */
+    ErrorHandlerService,
   ],
 })
 export class AppModule {}

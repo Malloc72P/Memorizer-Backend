@@ -3,7 +3,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { SectionDaoService } from '../../Model/DAO/section-dao/section-dao.service';
 import { UserDaoService } from '../../Model/DAO/user-dao/user-dao.service';
 import { SectionDto } from '../../Model/DTO/SectionDto/section.dto';
-import {Response} from 'express'
+import { UserDto } from '../../Model/DTO/UserDto/user-dto';
+import { ErrorHandlerService } from '../../Model/error-handler/error-handler.service';
 
 @Controller('section')
 export class SectionController {
@@ -11,6 +12,7 @@ export class SectionController {
   constructor(
     private sectionDao:SectionDaoService,
     private userDao:UserDaoService,
+    private errorHandlerService:ErrorHandlerService,
   ){
   }
 
@@ -28,7 +30,7 @@ export class SectionController {
       res.status(HttpStatus.CREATED).send(sectionList);
     } catch (e) {
       console.log("SectionController >> getSectionList >> e : ",e);
-      this.onErrorState(res);
+      this.errorHandlerService.onErrorState(res);
     }
   }
   @Post()
@@ -40,7 +42,7 @@ export class SectionController {
 
       //sectionDto 검사
       if(!this.isValidSectionDto(sectionDto)){
-        this.onErrorState(res);
+        this.errorHandlerService.onErrorState(res);
         return ;
       }
 
@@ -50,7 +52,7 @@ export class SectionController {
       res.status(HttpStatus.CREATED).send(createdSection);
     } catch (e) {
       console.log("SectionController >> saveSectionList >> e : ",e);
-      this.onErrorState(res);
+      this.errorHandlerService.onErrorState(res);
     }
   }
   @Patch()
@@ -62,7 +64,12 @@ export class SectionController {
 
       //sectionDto 검사
       if(!this.isValidSectionDto(sectionDto)){
-        this.onErrorState(res);
+        this.errorHandlerService.onErrorState(res);
+        return ;
+      }
+      //권한 검사
+      if(!await this.isValidAccess(thirdPartId, sectionDto)){
+        this.errorHandlerService.onForbiddenRequest(res);
         return ;
       }
 
@@ -71,7 +78,7 @@ export class SectionController {
       res.status(HttpStatus.CREATED).send(updatedSection);
     } catch (e) {
       console.log("SectionController >> updateSectionList >> e : ",e);
-      this.onErrorState(res);
+      this.errorHandlerService.onErrorState(res);
     }
   }
   @Delete()
@@ -81,19 +88,21 @@ export class SectionController {
     try { //idToken 획득
       let thirdPartId = req.user;
 
+      //권한 검사
+      if(!await this.isValidAccess(thirdPartId, sectionDto)){
+        this.errorHandlerService.onForbiddenRequest(res);
+        return;
+      }
+
       //section 삭제 후 성공메세지 응답
       await this.sectionDao.deleteOne(sectionDto._id);
       res.status(HttpStatus.CREATED).send();
     } catch (e) {
       console.log("SectionController >> deleteSectionList >> e : ",e);
-      this.onErrorState(res);
+      this.errorHandlerService.onErrorState(res);
     }
   }
 
-  onErrorState(res:Response){
-    console.log("SectionController >> onErrorState >> 진입함");
-    res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-  }
   isValidSectionDto(sectionDto:SectionDto) :boolean{
     if(!sectionDto){
       return false;
@@ -102,6 +111,18 @@ export class SectionController {
       return false;
     }
     return true
+  }
+  private async isValidAccess(idToken, sectionDto:SectionDto){
+    //수행하기에 권한이 충분한지 검사하는 메서드
+    //여기선 수정,삭제하려는 섹션의 소유자가 요청자와 동일한지 검사함.
+    try {
+      let userDto:UserDto = await this.userDao.findOne(idToken);
+      let foundSectionDto:SectionDto = await this.sectionDao.findOne(sectionDto._id);
+      //요청자의 idToken이 찾은 섹션의 소유자와 같은지를 반환함.
+      return userDto.idToken === foundSectionDto.owner;
+    }catch (e) {
+      console.log("SectionController >> isValidAccess >> e : ",e);
+    }
   }
 
 }
