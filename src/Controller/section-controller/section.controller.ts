@@ -35,7 +35,7 @@ export class SectionController {
   }
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  async saveSectionList(@Req() req, @Res() res, @Body() sectionDto:SectionDto)
+  async saveSection(@Req() req, @Res() res, @Body() sectionDto:SectionDto)
   {
     try { //idToken 획득
       let thirdPartId = req.user;
@@ -57,7 +57,7 @@ export class SectionController {
   }
   @Patch()
   @UseGuards(AuthGuard('jwt'))
-  async updateSectionList(@Req() req, @Res() res, @Body() sectionDto:SectionDto)
+  async updateSection(@Req() req, @Res() res, @Body() sectionDto:SectionDto)
   {
     try { //idToken 획득
       let thirdPartId = req.user;
@@ -83,7 +83,7 @@ export class SectionController {
   }
   @Delete()
   @UseGuards(AuthGuard('jwt'))
-  async deleteSectionList(@Req() req, @Res() res, @Body() sectionDto:SectionDto)
+  async deleteSection(@Req() req, @Res() res, @Body() sectionDto:SectionDto)
   {
     try { //idToken 획득
       let thirdPartId = req.user;

@@ -11,6 +11,9 @@ import { PassportModule } from '@nestjs/passport';
 import { ServerSetting } from './Config/server-setting';
 import { AuthCallbackController } from './Controller/auth-callback/auth-callback.controller';
 import { SectionSchema } from './Model/DTO/SectionDto/section.schema';
+import { ProblemSchema } from './Model/DTO/ProblemDto/problem.schema';
+import { ProblemDaoService } from './Model/DAO/problem-dao/problem-dao.service';
+import { ProblemController } from './Controller/problem-controller/problem.controller';
 import { SectionController } from './Controller/section-controller/section.controller';
 import { SectionDaoService } from './Model/DAO/section-dao/section-dao.service';
 import { ErrorHandlerService } from './Model/error-handler/error-handler.service';
@@ -33,12 +36,17 @@ import { ErrorHandlerService } from './Model/error-handler/error-handler.service
           name: "SECTION_MODEL",
           schema: SectionSchema
         },
+        {
+          name: "PROBLEM_MODEL",
+          schema: ProblemSchema
+        },
       ]),
   ],
   controllers: [
     AppController,
     AuthCallbackController,
-    SectionController
+    SectionController,
+    ProblemController,
   ],
   providers: [
     AppService,
@@ -54,6 +62,7 @@ import { ErrorHandlerService } from './Model/error-handler/error-handler.service
     /* *************************************************** */
     UserDaoService,
     SectionDaoService,
+    ProblemDaoService,
     /* *************************************************** */
     /* Handler Service START */
     /* *************************************************** */
