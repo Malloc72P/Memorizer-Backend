@@ -30,7 +30,7 @@ export class SectionController {
       res.status(HttpStatus.CREATED).send(sectionList);
     } catch (e) {
       console.log("SectionController >> getSectionList >> e : ",e);
-      this.errorHandlerService.onErrorState(res);
+      this.errorHandlerService.onErrorState(res, e);
     }
   }
   @Post()
@@ -42,7 +42,7 @@ export class SectionController {
 
       //sectionDto 검사
       if(!this.isValidSectionDto(sectionDto)){
-        this.errorHandlerService.onErrorState(res);
+        this.errorHandlerService.onErrorState(res, "isValidSectionDto");
         return ;
       }
 
@@ -52,7 +52,7 @@ export class SectionController {
       res.status(HttpStatus.CREATED).send(createdSection);
     } catch (e) {
       console.log("SectionController >> saveSectionList >> e : ",e);
-      this.errorHandlerService.onErrorState(res);
+      this.errorHandlerService.onErrorState(res, e);
     }
   }
   @Patch()
@@ -64,12 +64,12 @@ export class SectionController {
 
       //sectionDto 검사
       if(!this.isValidSectionDto(sectionDto)){
-        this.errorHandlerService.onErrorState(res);
+        this.errorHandlerService.onErrorState(res, "isValidSectionDto");
         return ;
       }
       //권한 검사
       if(!await this.isValidAccess(thirdPartId, sectionDto)){
-        this.errorHandlerService.onForbiddenRequest(res);
+        this.errorHandlerService.onForbiddenRequest(res, "isValidAccess");
         return ;
       }
 
@@ -78,7 +78,7 @@ export class SectionController {
       res.status(HttpStatus.CREATED).send(updatedSection);
     } catch (e) {
       console.log("SectionController >> updateSectionList >> e : ",e);
-      this.errorHandlerService.onErrorState(res);
+      this.errorHandlerService.onErrorState(res, e);
     }
   }
   @Delete()
@@ -90,7 +90,7 @@ export class SectionController {
 
       //권한 검사
       if(!await this.isValidAccess(thirdPartId, sectionDto)){
-        this.errorHandlerService.onForbiddenRequest(res);
+        this.errorHandlerService.onForbiddenRequest(res, "isValidAccess");
         return;
       }
 
@@ -99,7 +99,7 @@ export class SectionController {
       res.status(HttpStatus.CREATED).send();
     } catch (e) {
       console.log("SectionController >> deleteSectionList >> e : ",e);
-      this.errorHandlerService.onErrorState(res);
+      this.errorHandlerService.onErrorState(res, e);
     }
   }
 

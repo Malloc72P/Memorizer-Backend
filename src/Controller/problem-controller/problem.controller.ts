@@ -28,13 +28,13 @@ export class ProblemController {
 
       //섹션ID를 안가져왔으면 수행 안함
       if(!sectionId){
-        this.errorHandlerService.onBadRequestState(res);
+        this.errorHandlerService.onBadRequestState(res, "!sectionId");
         return;
       }
       let sectionDto:SectionDto = await this.sectionDao.findOne(sectionId);
       //해당 섹션 소유자가 맞는지 검사
       if(sectionDto.owner !== thirdPartId){
-        this.errorHandlerService.onForbiddenRequest(res);
+        this.errorHandlerService.onForbiddenRequest(res, "sectionDto.owner !== thirdPartId");
         return;
       }
       //sectionId로 문제목록 가져오기
@@ -45,7 +45,7 @@ export class ProblemController {
       res.status(HttpStatus.CREATED).send(problemList);
     } catch (e) {
       console.log("ProblemController >> getProblemList >> e : ",e);
-      this.errorHandlerService.onErrorState(res);
+      this.errorHandlerService.onErrorState(res, e);
     }
   }
   @Post()
@@ -57,7 +57,7 @@ export class ProblemController {
 
       //ProblemDto 검사
       if(!this.isValidProblemDto(problemDto)){
-        this.errorHandlerService.onErrorState(res);
+        this.errorHandlerService.onErrorState(res, "isValidProblemDto");
         return ;
       }
 
@@ -76,7 +76,7 @@ export class ProblemController {
       res.status(HttpStatus.CREATED).send(createdProblem);
     } catch (e) {
       console.log("ProblemController >> saveProblemList >> e : ",e);
-      this.errorHandlerService.onErrorState(res);
+      this.errorHandlerService.onErrorState(res, e);
     }
   }
   @Patch()
@@ -88,21 +88,91 @@ export class ProblemController {
 
       //ProblemDto 검사
       if(!this.isValidProblemDto(problemDto)){
-        this.errorHandlerService.onErrorState(res);
+        this.errorHandlerService.onErrorState(res,  "isValidProblemDto");
         return ;
       }
       //권한 검사
       if(!await this.isValidAccess(thirdPartId, problemDto)){
-        this.errorHandlerService.onForbiddenRequest(res);
+        this.errorHandlerService.onForbiddenRequest(res, "isValidAccess");
         return ;
       }
 
       //Problem 업데이트 후, 반영된 개체 응답하기
-      let updatedProblem:ProblemDto = await this.problemDao.update(problemDto._id, problemDto);
+      let foundProblemDto:ProblemDto = await this.problemDao.findOne(problemDto._id);
+      //해당 api는 제목, 지문, 해답, 현재 출제간격레벨만 수정가능
+      foundProblemDto.title = problemDto.title;
+      foundProblemDto.question = problemDto.question;
+      foundProblemDto.answer = problemDto.answer;
+      foundProblemDto.currQuestionStep = problemDto.currQuestionStep;
+      let updatedProblem:ProblemDto = await this.problemDao.update(foundProblemDto._id, foundProblemDto);
       res.status(HttpStatus.CREATED).send(updatedProblem);
     } catch (e) {
       console.log("ProblemController >> updateProblemList >> e : ",e);
-      this.errorHandlerService.onErrorState(res);
+      this.errorHandlerService.onErrorState(res, e);
+    }
+  }
+  @Patch("increaseCorrectCount")
+  @UseGuards(AuthGuard('jwt'))
+  async increaseCorrectCount(@Req() req, @Res() res, @Body() problemDto:ProblemDto)
+  {
+    try { //idToken 획득
+      let thirdPartId = req.user;
+
+      //ProblemDto 검사
+      if(!this.isValidProblemDto(problemDto)){
+        this.errorHandlerService.onErrorState(res,  "isValidProblemDto");
+        return ;
+      }
+      //권한 검사
+      if(!await this.isValidAccess(thirdPartId, problemDto)){
+        this.errorHandlerService.onForbiddenRequest(res, "isValidAccess");
+        return ;
+      }
+
+      //Problem 업데이트 후, 반영된 개체 응답하기
+      let foundProblemDto:ProblemDto = await this.problemDao.findOne(problemDto._id);
+      //해당 api는 correctCound를 1만큼 증가시키는것만 가능
+      foundProblemDto.correctCount++;
+      foundProblemDto.questionedCount++;
+      foundProblemDto.recentlyQuestionedDate = new Date();
+      foundProblemDto.currQuestionStep++;
+      await this.problemDao.update(foundProblemDto._id, foundProblemDto);
+      foundProblemDto = await this.problemDao.findOne(problemDto._id);
+      res.status(HttpStatus.CREATED).send(foundProblemDto);
+    } catch (e) {
+      console.log("ProblemController >> increaseCorrectCount >> e : ",e);
+      this.errorHandlerService.onErrorState(res, e);
+    }
+  }
+  @Patch("increaseIncorrectCount")
+  @UseGuards(AuthGuard('jwt'))
+  async increaseIncorrectCount(@Req() req, @Res() res, @Body() problemDto:ProblemDto)
+  {
+    try { //idToken 획득
+      let thirdPartId = req.user;
+
+      //ProblemDto 검사
+      if(!this.isValidProblemDto(problemDto)){
+        this.errorHandlerService.onErrorState(res,  "isValidProblemDto");
+        return ;
+      }
+      //권한 검사
+      if(!await this.isValidAccess(thirdPartId, problemDto)){
+        this.errorHandlerService.onForbiddenRequest(res, "isValidAccess");
+        return ;
+      }
+
+      //Problem 업데이트 후, 반영된 개체 응답하기
+      let foundProblemDto:ProblemDto = await this.problemDao.findOne(problemDto._id);
+      //해당 api는 incorrectCount를 1만큼 증가시키는것만 가능
+      foundProblemDto.incorrectCount++;
+      foundProblemDto.questionedCount++;
+      await this.problemDao.update(foundProblemDto._id, foundProblemDto);
+      foundProblemDto = await this.problemDao.findOne(problemDto._id);
+      res.status(HttpStatus.CREATED).send(foundProblemDto);
+    } catch (e) {
+      console.log("ProblemController >> increaseCorrectCount >> e : ",e);
+      this.errorHandlerService.onErrorState(res, e);
     }
   }
   @Delete()
@@ -114,7 +184,7 @@ export class ProblemController {
 
       //권한 검사
       if(!await this.isValidAccess(thirdPartId, problemDto)){
-        this.errorHandlerService.onForbiddenRequest(res);
+        this.errorHandlerService.onForbiddenRequest(res, "isValidAccess");
         return;
       }
 
@@ -123,7 +193,7 @@ export class ProblemController {
       res.status(HttpStatus.CREATED).send();
     } catch (e) {
       console.log("ProblemController >> deleteProblemList >> e : ",e);
-      this.errorHandlerService.onErrorState(res);
+      this.errorHandlerService.onErrorState(res, e);
     }
   }
 
