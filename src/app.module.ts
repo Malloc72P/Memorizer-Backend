@@ -17,6 +17,7 @@ import { ProblemController } from './Controller/problem-controller/problem.contr
 import { SectionController } from './Controller/section-controller/section.controller';
 import { SectionDaoService } from './Model/DAO/section-dao/section-dao.service';
 import { ErrorHandlerService } from './Model/error-handler/error-handler.service';
+import { DiscordSessionMgrService } from './Model/session-manager/discord-session-mgr/discord-session-mgr.service';
 
 @Module({
   imports: [
@@ -67,6 +68,10 @@ import { ErrorHandlerService } from './Model/error-handler/error-handler.service
     /* Handler Service START */
     /* *************************************************** */
     ErrorHandlerService,
+    /* *************************************************** */
+    /* Memorizer Session Service START */
+    /* *************************************************** */
+    DiscordSessionMgrService,
   ],
 })
 export class AppModule {}

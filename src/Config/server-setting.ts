@@ -20,6 +20,9 @@ export class ServerSetting {
 
   public static readonly googleCallbackURL      = ServerSetting.nestUrl + "/auth/google/callback";
 
+  public static readonly discordClientId      = serverSecretJson.discordBot_clientId;
+  public static readonly discordToken         = serverSecretJson.discordBot_token;
+
   public static readonly ngRoutes = {
     "loginSuccess" : ServerSetting.ngUrl + "/login/success/",
     "loginFailure" : ServerSetting.ngUrl + "/login/failure"
