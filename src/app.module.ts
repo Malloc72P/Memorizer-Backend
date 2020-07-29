@@ -18,6 +18,9 @@ import { SectionController } from './Controller/section-controller/section.contr
 import { SectionDaoService } from './Model/DAO/section-dao/section-dao.service';
 import { ErrorHandlerService } from './Model/error-handler/error-handler.service';
 import { DiscordSessionMgrService } from './Model/session-manager/discord-session-mgr/discord-session-mgr.service';
+import { DiscordUsersSchema } from './Model/DTO/DiscordUsersDto/discord-users.schema';
+import { DiscordUsersDaoService } from './Model/DAO/discord-users-dao/discord-users-dao.service';
+import { DiscordSessionController } from './Controller/discord-session/discord-session.controller';
 
 @Module({
   imports: [
@@ -41,6 +44,10 @@ import { DiscordSessionMgrService } from './Model/session-manager/discord-sessio
           name: "PROBLEM_MODEL",
           schema: ProblemSchema
         },
+        {
+          name: "DISCORD_USERS_MODEL",
+          schema: DiscordUsersSchema
+        },
       ]),
   ],
   controllers: [
@@ -48,6 +55,7 @@ import { DiscordSessionMgrService } from './Model/session-manager/discord-sessio
     AuthCallbackController,
     SectionController,
     ProblemController,
+    DiscordSessionController
   ],
   providers: [
     AppService,
@@ -64,6 +72,7 @@ import { DiscordSessionMgrService } from './Model/session-manager/discord-sessio
     UserDaoService,
     SectionDaoService,
     ProblemDaoService,
+    DiscordUsersDaoService,
     /* *************************************************** */
     /* Handler Service START */
     /* *************************************************** */

@@ -8,8 +8,7 @@ import { ProblemDto } from '../../DTO/ProblemDto/problem.dto';
 @Injectable()
 export class ProblemDaoService {
   constructor(
-    @InjectModel('PROBLEM_MODEL') private readonly problemModel: Model<ProblemDtoIntf>) {
-}
+    @InjectModel('PROBLEM_MODEL') private readonly problemModel: Model<ProblemDtoIntf>) {}
 
   async create(createProblemDto: ProblemDto): Promise<any> {
     const createdSection = new this.problemModel(createProblemDto);
