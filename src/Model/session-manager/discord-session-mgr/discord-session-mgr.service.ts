@@ -4,6 +4,7 @@ import * as Discord from 'discord.js';
 import { DiscordUsersDaoService } from '../../DAO/discord-users-dao/discord-users-dao.service';
 import { DiscordUsersDto } from '../../DTO/DiscordUsersDto/discord-users.dto';
 
+
 class BotCommand {
   public command;
   public params:Array<string> = new Array<string>();
@@ -196,11 +197,49 @@ export class DiscordSessionMgrService {
       console.log("DiscordSessionMgrService >> onRegisterCommand >> discordUserDto : ",discordUserDto);
       // console.log(`DiscordSessionMgrService >> onRegisterCommand >> userName : ${msg.author.username}#${msg.author.discriminator}`);
       let replyMsg =  `연동요청이 접수되었습니다\n${ServerSetting.ngUrl} 에 접속하고 로그인하신 다음,`
-                    + ` 입력하신 연동암호를 입력해주세요\n입력하신 연동암호 : ${discordUserDto.activationKey}`;
+                    + ` 입력하신 연동암호를 입력해주세요\n입력하신 연동암호 : ${discordUserDto.activationKey}`
+                    +` <a href="${ServerSetting.ngUrl}/discord/linking/${discordUserDto._id}">testing</a> `;
 
       console.log("DiscordSessionMgrService >> onRegisterCommand >> discordUserDto : ", discordUserDto);
 
-      await msg.reply(replyMsg);
+      // await msg.reply(replyMsg);
+      //https://cdn.discordapp.com/avatars/310214901878489089/edae54344884ffd8059ac5e35d091e27.jpg
+      let botInfo:Discord.User = await this.discordClient.users.fetch("737252123078819881");
+      let title = `연동요청이 접수되었습니다!`;
+      let desc = `아래의 링크로 접속하여 로그인하신 다음,\n 입력하신 연동암호를 입력해주세요`;
+      const exampleEmbed = {
+        color: 0x0099ff,
+        title: title,
+        url: ServerSetting.ngUrl,
+        author: {
+          name: 'Memorizer-MK1',
+          icon_url: botInfo.avatarURL(),
+          url: ServerSetting.ngUrl,
+        },
+        description: desc,
+        fields: [
+          {
+            name: '계정 연동 링크',
+            value: `${ServerSetting.ngUrl}/discord/linking/${discordUserDto._id}`,
+          },
+          {
+            name: '\u200b',
+            value: '\u200b',
+            inline: false,
+          },
+          {
+            name: '연동암호',
+            value: discordUserDto.activationKey,
+          },
+        ],
+        timestamp: new Date(),
+        footer: {
+          text: 'developed by scra1028',
+        },
+      };
+      // await msg.reply({embed : exampleEmbed});
+      // await msg.reply(exampleEmbed);
+      await this.sendMsgWithDiscordId(discordUserDto.discordUserId, {embed : exampleEmbed});
     } catch (e) {
       console.log("DiscordSessionMgrService >> onRegisterCommand >> e : ",e);
     }
