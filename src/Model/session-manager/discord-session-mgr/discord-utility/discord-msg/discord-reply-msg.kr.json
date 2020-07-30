@@ -1,0 +1,108 @@
+{
+  "msgList" : [
+    {
+      "command"     : "requestRegister",
+      "title"       : "연동요청이 접수되었습니다!",
+      "color"       : "#0099ff",
+      "description" : "아래의 링크로 접속하여 로그인하신 다음,\n 입력하신 연동암호를 입력해주세요",
+      "embedFields" : [
+        {
+          "name" : "계정 연동 링크",
+          "value" : "",
+          "inline" : false
+        },
+        {"name" : "\u200b","value" : "\u200b","inline" : false},
+        {
+          "name" : "연동암호",
+          "value" : "",
+          "inline" : false
+        }
+      ]
+    },
+    {
+      "command"     : "onRegisterSuccess",
+      "title"       : "성공적으로 연동되었습니다!",
+      "color"       : "#0099ff",
+      "description" : "이제 메모라이저가 여기에 문제를 내줄께요!",
+      "embedFields" : [
+        {"name" : "\u200b","value" : "\u200b","inline" : false},
+        { "name" : "연동된 메모라이저 계정 정보", "value" : "\u200B", "inline" : false },
+        { "name" : "이름", "value" : "", "inline" : false },
+        { "name" : "이메일", "value" : "", "inline" : false },
+        { "name" : "가입한 날짜", "value" : "", "inline" : false },
+        {"name" : "\u200b","value" : "\u200b","inline" : false}
+      ]
+    },
+    {
+      "command"     : "requestWhoAmI",
+      "title"       : "메모라이저 계정정보",
+      "color"       : "#0099ff",
+      "description" : "당신의 디스코드 계정과 연동된 메모라이저 계졍 정보입니다",
+      "embedFields" : [
+        {"name" : "\u200b","value" : "\u200b","inline" : false},
+        { "name" : "이름", "value" : "", "inline" : false },
+        { "name" : "이메일", "value" : "", "inline" : false },
+        { "name" : "가입한 날짜", "value" : "", "inline" : false },
+        {"name" : "\u200b","value" : "\u200b","inline" : false}
+      ]
+    },
+    {
+      "command"     : "requestHelp",
+      "title"       : "메모라이저 사용법",
+      "color"       : "#0099ff",
+      "description" : "아래의 명령어를 사용할 수 있어요",
+      "embedFields" : [
+        {"name" : "\u200b","value" : "\u200b","inline" : false},
+        {
+          "name" : "!register [연동암호]",
+          "value" : "당신의 메모라이저 계정과 디코계정을 연동합니다",
+          "inline" : false
+        },
+        {"name" : "\u200b","value" : "\u200b","inline" : false},
+        {
+          "name" : "!whoAmI",
+          "value" : "당신의 메모라이저 계정정보를 보여줍니다",
+          "inline" : false
+        },
+        {"name" : "\u200b","value" : "\u200b","inline" : false}
+      ]
+    },
+    {
+      "command"     : "onError",
+      "title"       : "에러가 발생했습니다.",
+      "color"       : "#d60b52",
+      "description" : "다시 시도해주세요",
+      "embedFields" : []
+    },
+    {
+      "command"     : "onInvalidRequest",
+      "title"       : "잘못된 입력입니다",
+      "color"       : "#d60b52",
+      "description" : "다시 시도해주세요",
+      "embedFields" : []
+    },
+    {
+      "command"     : "alreadyLinkedAccount",
+      "title"       : "이미 연동된 계정입니다",
+      "color"       : "#d60b52",
+      "description" : "",
+      "embedFields" : []
+    },
+    {
+      "command"     : "resignedMemorizerAccount",
+      "title"       : "이미 메모라이저에서 탈퇴한 계정입니다",
+      "color"       : "#d60b52",
+      "description" : "",
+      "embedFields" : []
+    },
+    {
+      "command"     : "notYetLinked",
+      "title"       : "수행할 수 없는 명령입니다",
+      "color"       : "#d60b52",
+      "description" : "해당 서비스를 이용하시려면 메모라이저와 연동해야합니다",
+      "embedFields" : []
+    }
+
+
+  ]
+}

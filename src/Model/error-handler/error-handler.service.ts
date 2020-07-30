@@ -9,7 +9,7 @@ export class ErrorHandlerService {
   }
   onBadRequestState(res:Response, e){
     console.log("ErrorHandlerService >> onBadRequestState >> 진입함", e);
-    res.status(HttpStatus.BAD_REQUEST).send();
+    res.status(HttpStatus.BAD_REQUEST).send(e);
   }
   onForbiddenRequest(res:Response, e){
     console.log("ErrorHandlerService >> onForbiddenRequest >> 진입함", e);
