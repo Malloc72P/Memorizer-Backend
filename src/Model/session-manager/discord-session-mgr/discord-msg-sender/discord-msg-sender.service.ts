@@ -26,6 +26,15 @@ export class DiscordMsgSenderService {
   private async sendMsg(dmChannel:Discord.DMChannel, discordMsg:DiscordMsg){
     await dmChannel.send(this.buildEmbedMsg(discordMsg));
   }
+  private async sendTextMsg(dmChannel:Discord.DMChannel, discordMsg:DiscordMsg){
+    let textMessage = `${discordMsg.title}\n${discordMsg.description}\n`;
+    for(let currEmbedField of discordMsg.embedFields){
+      textMessage += `${currEmbedField.name} : ${currEmbedField.value}\n`;
+    }
+    textMessage = "\n" + textMessage + "\n";
+    await dmChannel.send(textMessage);
+  }
+
   public async sendMsgWithIdToken(idToken, discordMsg:DiscordMsg){
     try {
       let dmChannel:Discord.DMChannel = await this.getDmChannelByIdToken(idToken);
@@ -47,6 +56,30 @@ export class DiscordMsgSenderService {
     } catch (e) {
       console.log("DiscordSessionMgrService >> sendMsgWithDiscordId >> e : ",e);
       console.log("DiscordMsgSenderService >> sendMsgWithDiscordId >> this.buildEmbedMsg(discordMsg) : ",this.buildEmbedMsg(discordMsg));
+    }
+  }
+  public async sendTextWithIdToken(idToken, discordMsg:DiscordMsg){
+    try {
+      let dmChannel:Discord.DMChannel = await this.getDmChannelByIdToken(idToken);
+      if(!dmChannel){
+        console.log("DiscordSessionMgrService >> sendMsgWithIdToken >> !dmChannel");
+      }
+      await this.sendTextMsg(dmChannel, discordMsg);
+    } catch (e) {
+      console.log("DiscordSessionMgrService >> sendMsgWithIdToken >> e : ",e);
+    }
+  }
+
+  public async sendTextMsgWithDiscordId(discordId, discordMsg:DiscordMsg){
+    try {
+      let dmChannel:Discord.DMChannel = await this.getDmChannelByDiscordId(discordId);
+      if(!dmChannel){
+        console.log("DiscordSessionMgrService >> sendTextMsgWithDiscordId >> !dmChannel");
+      }
+      await this.sendTextMsg(dmChannel, discordMsg);
+    } catch (e) {
+      console.log("DiscordSessionMgrService >> sendTextMsgWithDiscordId >> e : ",e);
+      console.log("DiscordMsgSenderService >> sendTextMsgWithDiscordId >> this.buildEmbedMsg(discordMsg) : ",this.buildEmbedMsg(discordMsg));
     }
   }
   private async getDmChannelByIdToken(idToken) :Promise<Discord.DMChannel>{//메모라이저 IdToken으로 DM찾아주는 메서드
@@ -73,7 +106,6 @@ export class DiscordMsgSenderService {
     let newEmbedMsg:Discord.MessageEmbed = new Discord.MessageEmbed();
     newEmbedMsg.setColor(discordMsg.color)
       .setTitle(discordMsg.title)
-      .setURL(ServerSetting.ngUrl)
       .setAuthor(ServerSetting.discordBotName,
         this.botInfo.avatarURL(), ServerSetting.ngUrl,)
       .setDescription(discordMsg.description)
@@ -81,6 +113,11 @@ export class DiscordMsgSenderService {
       .setTimestamp()
       .setFooter('developed by scra1028');
 
+    if(discordMsg.link){
+      newEmbedMsg.setURL(discordMsg.link);
+    }else {
+      newEmbedMsg.setURL(ServerSetting.ngUrl);
+    }
     return newEmbedMsg;
   }
   buildEmbedField(name, value, inline) : Discord.EmbedField{

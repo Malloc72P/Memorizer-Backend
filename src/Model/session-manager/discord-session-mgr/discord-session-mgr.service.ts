@@ -4,13 +4,14 @@ import * as Discord from 'discord.js';
 import { DiscordUsersDaoService } from '../../DAO/discord-users-dao/discord-users-dao.service';
 import { DiscordMsgSenderService } from './discord-msg-sender/discord-msg-sender.service';
 import { DiscordBotControllerService } from './discord-bot-controller/discord-bot-controller.service';
-
+import {EventEmitter} from "events";
 
 //디스코드 봇 초기화 과정을 담당하는 서비스
 @Injectable()
 export class DiscordSessionMgrService {
   private readonly discordClient:Discord.Client = null;
   private discordBotInfo:Discord.User = null;
+  public discordBotEventEmitter:EventEmitter = new EventEmitter();
 
   constructor(
     private discordUsersDao:DiscordUsersDaoService,
@@ -20,6 +21,7 @@ export class DiscordSessionMgrService {
     //discord 클라이언트 생성
     this.discordClient = new Discord.Client();
     this.initDiscordBot().then(()=>{
+      this.discordBotEventEmitter.emit("ready", this.discordClient);
     });
   }
   async initDiscordBot(){

@@ -5,6 +5,7 @@ import * as Discord from "discord.js"
 export enum DiscordReplyMsgEnum {
   requestWhoAmI               = "requestWhoAmI",
   requestRegister             = "requestRegister",
+  prepareTest                 = "prepareTest",
   onRegisterSuccess           = "onRegisterSuccess",
   requestHelp                 = "requestHelp",
   onError                     = "onError",

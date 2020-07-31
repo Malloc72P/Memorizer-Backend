@@ -9,13 +9,15 @@ import { DaoModule } from './Model/DAO/dao.module';
 import { DiscordSessionMgrModule } from './Model/session-manager/discord-session-mgr/discord-session-mgr.module';
 import { SocialLoginModule } from './Model/social-login/social-login.module';
 import { ErrorHandlerModule } from './Model/error-handler/error-handler.module';
+import { ProblemSessionMgrModule } from './Model/session-manager/problem-session-mgr/problem-session-mgr.module';
 
 @Module({
   imports: [
     DaoModule,
     DiscordSessionMgrModule,
     SocialLoginModule,
-    ErrorHandlerModule
+    ErrorHandlerModule,
+    ProblemSessionMgrModule,
   ],
   controllers: [
     AppController,

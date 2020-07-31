@@ -31,7 +31,8 @@ export class DiscordBotControllerService {
   }
 
   //요청에 맞는 컨트롤러를 실행시켜주는 메서드
-  public processBotRequest(msg:Discord.Message){
+  public async processBotRequest(msg:Discord.Message){
+    console.log("DiscordBotControllerService >> processBotRequest >> msg : ",msg);
     let botCommand:BotCommand = MsgParser.parseMsg(msg);
     if(botCommand === null){
       return;
@@ -44,7 +45,8 @@ export class DiscordBotControllerService {
         this.onWhoAmI(msg, botCommand).then(()=>{});
         break;
       case "test" :
-        this.onErrorHandler(msg).then(()=>{});
+        // this.onErrorHandler(msg).then(()=>{});
+        await msg.reply("IWS2000의 탄종은?");
         break;
       default :
         this.onUndefinedRequest(msg).then(()=>{});
@@ -147,7 +149,8 @@ export class DiscordBotControllerService {
       replyMsg.embedFields[2].value = memorizerUserDto.email;
       replyMsg.embedFields[3].value = memorizerUserDto.regDate.toDateString();
 
-      await this.msgSender.sendMsgWithDiscordId(discordUserDto.discordUserId, replyMsg);
+      // await this.msgSender.sendMsgWithDiscordId(discordUserDto.discordUserId, replyMsg);
+      await this.msgSender.replyMsg(msg, replyMsg);
     } catch (e) {
       console.log("DiscordSessionMgrService >> onWhoAmI >> e : ",e);
     }
@@ -190,7 +193,13 @@ export class DiscordBotControllerService {
         reject(e);
       }
     });
-
+  }
+  async deleteMultipleMessages(msg:Discord.Message){
+    msg.channel.messages.fetch({limit : 90}).then(async (res:Discord.Collection<string,Discord.Message>)=>{
+      for(let currMsg of res){
+        currMsg[1].delete();
+      }
+    });
   }
   /* **************************************************** */
   /* Discord Bot Controller Main END */

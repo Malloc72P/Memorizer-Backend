@@ -20,6 +20,17 @@
       ]
     },
     {
+      "command"     : "prepareTest",
+      "title"       : "#문제 : ",
+      "color"       : "#0099ff",
+      "description" : "",
+      "embedFields" : [
+        { "name" : "출제회수", "value" : "", "inline" : false },
+        { "name" : "맞은회수", "value" : "", "inline" : false },
+        { "name" : "틀린회수", "value" : "", "inline" : false }
+      ]
+    },
+    {
       "command"     : "onRegisterSuccess",
       "title"       : "성공적으로 연동되었습니다!",
       "color"       : "#0099ff",

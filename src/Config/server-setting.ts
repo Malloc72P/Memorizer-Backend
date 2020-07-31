@@ -28,5 +28,17 @@ export class ServerSetting {
   public static readonly ngRoutes = {
     "loginSuccess" : ServerSetting.ngUrl + "/login/success/",
     "loginFailure" : ServerSetting.ngUrl + "/login/failure"
-  }
+  };
+  public static readonly timerStepList:Array<number> = [
+    10 * 60 * 10,
+    60 * 60 * 10,
+    3 * 60 * 60 * 10,
+    6 * 60 * 60 * 10,
+    24 * 60 * 60 * 10,
+    2 * 24 * 60 * 60 * 10,
+    3 * 24 * 60 * 60 * 10,
+    4 * 24 * 60 * 60 * 10,
+    5 * 24 * 60 * 60 * 10,
+    6 * 24 * 60 * 60 * 10,
+  ];
 }
