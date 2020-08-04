@@ -37,7 +37,7 @@ export class DiscordSessionMgrService {
       //메세지 전송 서비스 초기화
       this.msgSender.initDiscordMsgSender(this.discordClient, this.discordBotInfo);
       //봇 요청 컨트롤러 서비스 초기화
-      this.botController.initDiscordBotController(this.discordClient, this.discordBotInfo)
+      this.botController.initDiscordBotController(this.discordClient, this.discordBotInfo);
     } catch (e) {
       console.log("DiscordSessionMgrService >> initDiscordBot >> e : ",e);
     }
