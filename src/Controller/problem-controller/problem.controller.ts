@@ -7,6 +7,7 @@ import { ProblemDto } from '../../Model/DTO/ProblemDto/Problem.dto';
 import { UserDto } from '../../Model/DTO/UserDto/user-dto';
 import { SectionDaoService } from '../../Model/DAO/section-dao/section-dao.service';
 import { SectionDto } from '../../Model/DTO/SectionDto/section.dto';
+import { ProblemSessionMgrService } from '../../Model/session-manager/problem-session-mgr/problem-session-mgr.service';
 
 @Controller('problem')
 export class ProblemController {
@@ -14,6 +15,7 @@ export class ProblemController {
     private sectionDao:SectionDaoService,
     private problemDao:ProblemDaoService,
     private userDao:UserDaoService,
+    private problemSessionMgr:ProblemSessionMgrService,
     private errorHandlerService:ErrorHandlerService,
   ){
   }
@@ -73,6 +75,9 @@ export class ProblemController {
       problemDto.recentlyQuestionedDate = new Date();
 
       let createdProblem:ProblemDto = await this.problemDao.create(problemDto);
+      this.problemSessionMgr.problemSessionMgrEventEmitter
+        .emit("problem-created", createdProblem);
+
       res.status(HttpStatus.CREATED).send(createdProblem);
     } catch (e) {
       console.log("ProblemController >> saveProblemList >> e : ",e);
@@ -105,6 +110,10 @@ export class ProblemController {
       foundProblemDto.answer = problemDto.answer;
       foundProblemDto.currQuestionStep = problemDto.currQuestionStep;
       let updatedProblem:ProblemDto = await this.problemDao.update(foundProblemDto._id, foundProblemDto);
+
+      this.problemSessionMgr.problemSessionMgrEventEmitter
+        .emit("problem-updated", problemDto);
+
       res.status(HttpStatus.CREATED).send(updatedProblem);
     } catch (e) {
       console.log("ProblemController >> updateProblemList >> e : ",e);
@@ -138,7 +147,11 @@ export class ProblemController {
       foundProblemDto.currQuestionStep++;
       await this.problemDao.update(foundProblemDto._id, foundProblemDto);
       foundProblemDto = await this.problemDao.findOne(problemDto._id);
+
+      this.problemSessionMgr.problemSessionMgrEventEmitter
+        .emit("problem-updated", foundProblemDto);
       res.status(HttpStatus.CREATED).send(foundProblemDto);
+      await this.problemSessionMgr.startProblemInstance(foundProblemDto);
     } catch (e) {
       console.log("ProblemController >> increaseCorrectCount >> e : ",e);
       this.errorHandlerService.onErrorState(res, e);
@@ -167,9 +180,17 @@ export class ProblemController {
       //해당 api는 incorrectCount를 1만큼 증가시키는것만 가능
       foundProblemDto.incorrectCount++;
       foundProblemDto.questionedCount++;
+      foundProblemDto.recentlyQuestionedDate = new Date();
+      if(foundProblemDto.currQuestionStep > 0){
+        foundProblemDto.currQuestionStep--;
+      }
       await this.problemDao.update(foundProblemDto._id, foundProblemDto);
       foundProblemDto = await this.problemDao.findOne(problemDto._id);
+
+      this.problemSessionMgr.problemSessionMgrEventEmitter
+        .emit("problem-updated", foundProblemDto);
       res.status(HttpStatus.CREATED).send(foundProblemDto);
+      await this.problemSessionMgr.startProblemInstance(foundProblemDto);
     } catch (e) {
       console.log("ProblemController >> increaseCorrectCount >> e : ",e);
       this.errorHandlerService.onErrorState(res, e);
@@ -190,6 +211,10 @@ export class ProblemController {
 
       //Problem 삭제 후 성공메세지 응답
       await this.problemDao.deleteOne(problemDto._id);
+      problemDto._id = problemDto._id.toString();
+
+      this.problemSessionMgr.problemSessionMgrEventEmitter
+        .emit("problem-deleted", problemDto);
       res.status(HttpStatus.CREATED).send();
     } catch (e) {
       console.log("ProblemController >> deleteProblemList >> e : ",e);

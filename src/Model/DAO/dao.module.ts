@@ -10,6 +10,7 @@ import { UserDaoService } from './user-dao/user-dao.service';
 import { SectionDaoService } from './section-dao/section-dao.service';
 import { ProblemDaoService } from './problem-dao/problem-dao.service';
 import { DiscordUsersDaoService } from './discord-users-dao/discord-users-dao.service';
+import { ProblemSessionMgrModule } from '../session-manager/problem-session-mgr/problem-session-mgr.module';
 
 @Module({
   imports: [

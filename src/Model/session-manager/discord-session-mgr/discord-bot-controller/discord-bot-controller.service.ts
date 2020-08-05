@@ -10,6 +10,7 @@ import { DiscordReplyMsgEnum, DiscordReplyMsgMgrService } from '../discord-reply
 import { DiscordMsg } from '../discord-utility/discord-msg/discord-msg';
 import { UserDto } from '../../../DTO/UserDto/user-dto';
 import { UserDaoService } from '../../../DAO/user-dao/user-dao.service';
+import { ProblemSessionMgrService } from '../../problem-session-mgr/problem-session-mgr.service';
 
 //디스코드 봇에 대한 사용자 요청을 처리하는 컨트롤러 서비스
 @Injectable()
