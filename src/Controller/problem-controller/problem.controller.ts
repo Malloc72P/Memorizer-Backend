@@ -26,22 +26,27 @@ export class ProblemController {
   {
     try { //idToken 획득
       let thirdPartId = req.user;
+
       let sectionId = param.sectionId;
+      let problemTitle = param.problemTitle;
+      let problemQuestion = param.problemQuestion;
 
       //섹션ID를 안가져왔으면 수행 안함
-      if(!sectionId){
-        this.errorHandlerService.onBadRequestState(res, "!sectionId");
-        return;
-      }
-      let sectionDto:SectionDto = await this.sectionDao.findOne(sectionId);
-      //해당 섹션 소유자가 맞는지 검사
-      if(sectionDto.owner !== thirdPartId){
-        this.errorHandlerService.onForbiddenRequest(res, "sectionDto.owner !== thirdPartId");
-        return;
-      }
-      //sectionId로 문제목록 가져오기
-      let problemList: Array<ProblemDto> = await this.problemDao.findAllBySection(sectionId);
+      //검색기능이 붙으면서 수행하게 됨
+      // if(!sectionId){
+      //   this.errorHandlerService.onBadRequestState(res, "!sectionId");
+      //   return;
+      // }
+      // let sectionDto:SectionDto = await this.sectionDao.findOne(sectionId);
+      // //해당 섹션 소유자가 맞는지 검사
+      //이 검사도 통합해서 수행하기 위해 주석처리됨
+      // if(sectionDto.owner !== thirdPartId){
+      //   this.errorHandlerService.onForbiddenRequest(res, "sectionDto.owner !== thirdPartId");
+      //   return;
+      // }
 
+      //sectionId로 문제목록 가져오기
+      let problemList: Array<ProblemDto> = await this.problemDao.findAllByParam(thirdPartId, sectionId, problemTitle, problemQuestion);
 
       //ProblemList 응답하기.
       res.status(HttpStatus.CREATED).send(problemList);
@@ -50,6 +55,9 @@ export class ProblemController {
       this.errorHandlerService.onErrorState(res, e);
     }
   }
+
+
+
   @Post()
   @UseGuards(AuthGuard('jwt'))
   async saveProblem(@Req() req, @Res() res, @Body() problemDto:ProblemDto)

@@ -25,6 +25,26 @@ export class ProblemDaoService {
   async findAllBySection(sectionId): Promise<ProblemDtoIntf[]> {
     return await this.problemModel.find({ belongingSectionId : sectionId }).exec();
   }
+  async findAllByParam(userIdToken, sectionId, problemTitle, problemQuestion): Promise<ProblemDtoIntf[]> {
+    let query = { "owner" : userIdToken };
+    if (sectionId && !this.isEmptyString(sectionId)) {
+      query['belongingSectionId'] = sectionId;
+    }
+    if (problemTitle && !this.isEmptyString(problemTitle)) {
+      query['title'] = { $regex : `.*${problemTitle}.*` };
+    }
+    if (problemQuestion && !this.isEmptyString(problemQuestion)) {
+      query['question'] = { $regex : `.*${problemQuestion}.*` };
+    }
+
+    return await this.problemModel.find(query).exec();
+  }
+  isEmptyString(str){
+    if(str === ""){
+      return true
+    }
+    else return false;
+  }
 
 
   async findOne(id): Promise<any> {
