@@ -6,4 +6,5 @@ export interface DiscordUsersDtoIntf extends mongoose.Document{
   owner;
   discordUserId;
   activationKey;
+  channelId;
 }

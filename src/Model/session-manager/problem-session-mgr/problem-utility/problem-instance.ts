@@ -40,6 +40,8 @@ export class ProblemInstance {
     });
   }
   updateTimer(problemDto:ProblemDto){
+    console.log("ProblemInstance >> updateTimer >> problemDto.currQuestionStep : ",problemDto.currQuestionStep);
+    console.log("ProblemInstance >> updateTimer >> this.problemDto.currQuestionStep : ",this.problemDto.currQuestionStep);
     if(problemDto.currQuestionStep !== this.problemDto.currQuestionStep){
       this.timerSubscription.unsubscribe();
       this.problemDto = problemDto;

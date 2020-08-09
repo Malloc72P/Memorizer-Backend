@@ -22,6 +22,9 @@ import {ObjectId} from 'mongodb';
 @Injectable()
 export class ProblemSessionMgrService {
   private problemInstanceMap:Map<any, ProblemInstance> = new Map<any, ProblemInstance>();
+  //문제출제로 인해 전송된 메세지를 저장하는 맵.
+  //사용자가 문제를 맞추는 경우, 해당하는 메세지를 지운다.
+  private sentMessageMap:Map<any, Discord.Message> = new Map<any, Discord.Message>();
   public problemSessionMgrEventEmitter:EventEmitter = new EventEmitter();
   constructor(
     private userDao:UserDaoService,
@@ -89,7 +92,8 @@ export class ProblemSessionMgrService {
       problemMsg.embedFields[1].value = problemDto.correctCount;
       problemMsg.embedFields[2].value = problemDto.incorrectCount;
       problemMsg.link = ServerSetting.ngUrl + '/problem/' + problemDto.belongingSectionId + '/' + problemDto._id;
-      await this.discordMsgSender.sendMsgWithIdToken(problemDto.owner, problemMsg);
+      let sentMsg:Discord.Message = await this.discordMsgSender.sendMsgWithIdToken(problemDto.owner, problemMsg);
+      this.sentMessageMap.set(this.getProblemDtoId(problemDto), sentMsg);
     } catch (e) {
       console.log("problemSessionMgr >> updateProblemInstance >> e : ",e);
     }
@@ -117,6 +121,13 @@ export class ProblemSessionMgrService {
     if(foundProblemInstance){
       foundProblemInstance.updateTimer(problemDto);
     }
+    // else{
+    //   //과거에 타이머가 끝나서 인스턴스화되지 않은 경우임.
+    //   //이 경우, 새 인스턴스를 만든다
+    //   let newProblemInstance:ProblemInstance = new ProblemInstance(problemDto);
+    //   this.problemInstanceMap.set(problemDto._id, newProblemInstance);
+    //   newProblemInstance.start();
+    // }
   }
   deleteProblemInstance(problemDto:ProblemDto){
     console.log("problemSessionMgr >> deleteProblemInstance >> 호출됨");
@@ -140,6 +151,14 @@ export class ProblemSessionMgrService {
     if(problemDto._id instanceof ObjectId){
       key = problemDto._id.toString();
     }else key = problemDto._id;
+  }
+  async deleteSentMsg(problemDto:ProblemDto){
+    //출제된 문제의 메세지가 서버에 저장되어 있는지 확인한다.
+    //있다면, 해당 메세지를 지워준다.
+    let sentMsg:Discord.Message = this.sentMessageMap.get(this.getProblemDtoId(problemDto));
+    if(sentMsg){
+      await sentMsg.delete();
+    }
   }
 }
 

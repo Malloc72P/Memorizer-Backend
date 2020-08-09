@@ -47,8 +47,14 @@ export class DiscordBotControllerService {
         break;
       case "test" :
         // this.onErrorHandler(msg).then(()=>{});
-        await msg.reply("IWS2000의 탄종은?");
+        let discordUserDto:DiscordUsersDto = await this.discordUsersDao.findOneByDiscordId(msg.author.id);
+        let dsChannel:Discord.TextChannel = await this.discordClient.channels.fetch(discordUserDto.channelId) as Discord.TextChannel;
+        let delMsg:Discord.Message = await dsChannel.messages.fetch("742006585915867167");
+        await delMsg.delete();
         break;
+      case "clear":
+      case "clean":
+        await this.deleteMultipleMessages(msg);
       default :
         this.onUndefinedRequest(msg).then(()=>{});
     }
@@ -86,7 +92,7 @@ export class DiscordBotControllerService {
       replyMsg.embedFields[0].value = `${ServerSetting.ngUrl}/discord/linking/${discordUserDto._id}`;
       replyMsg.embedFields[2].value = discordUserDto.activationKey;
 
-      await this.msgSender.sendMsgWithDiscordId(discordUserDto.discordUserId, replyMsg);
+      await this.msgSender.sendMsgWithChannelId(discordUserDto.channelId, replyMsg);
     } catch (e) {
       console.log("DiscordSessionMgrService >> onRegisterCommand >> e : ",e);
     }
@@ -101,17 +107,13 @@ export class DiscordBotControllerService {
         let discordUserId = msg.author.id;
         let activationKey = botCommand.params[0];
         let discordUserDto = await this.discordUsersDao.findOneByDiscordId(discordUserId);
-        if (discordUserDto && discordUserDto.isAvail) {
-          //이미 연동된 경우
-          await this.onErrorHandler(msg, this.replyMsgMgr.getKrReplyMsg(DiscordReplyMsgEnum.alreadyLinkedAccount));
-          reject("already linked")
-        } else if (discordUserDto && !discordUserDto.isAvail) {
+        if ((discordUserDto && discordUserDto.isAvail) || (discordUserDto && !discordUserDto.isAvail)) {
+          //이미 연동된 경우도 포함. 이 경우엔 기존 연동을 해제하고 새 채널과 연동하게 해준다
           //연동시도를 해서 데이터는 있으나 활성화는 안된상태
-          if (activationKey !== discordUserDto.activationKey) {
-            //연동암호가 바뀌었다면 업데이트해준다
-            discordUserDto.activationKey = activationKey;
-            await this.discordUsersDao.update(discordUserDto._id, discordUserDto);
-          }
+          console.log(`new channel : ${msg.channel.id}`);
+          discordUserDto.activationKey = activationKey;
+          discordUserDto.channelId = msg.channel.id;
+          await this.discordUsersDao.update(discordUserDto._id, discordUserDto);
         } else {
           console.log('DiscordSessionMgrService >> onRegisterCommand >> 연동요청이 없었던 경우');
           //연동요청이 없었던 경우엔 discordUserDto 생성
@@ -121,6 +123,7 @@ export class DiscordBotControllerService {
           //향후 웹앱에서 연동해서 해당 필드도 채우고 isAvail값도 true로 바꿀 수 있음.
           newDiscordUserDto.discordUserId = discordUserId;
           newDiscordUserDto.activationKey = activationKey;
+          newDiscordUserDto.channelId     = msg.channel.id;
 
           discordUserDto = await this.discordUsersDao.create(newDiscordUserDto);
         }
@@ -196,11 +199,12 @@ export class DiscordBotControllerService {
     });
   }
   async deleteMultipleMessages(msg:Discord.Message){
-    msg.channel.messages.fetch({limit : 90}).then(async (res:Discord.Collection<string,Discord.Message>)=>{
-      for(let currMsg of res){
-        currMsg[1].delete();
-      }
-    });
+    msg.channel.bulkDelete(99).then(()=>{
+
+    })
+    // msg.channel.messages.fetch({limit : 90}).then(async (res:Discord.Collection<string,Discord.Message>)=>{
+    //
+    // });
   }
   /* **************************************************** */
   /* Discord Bot Controller Main END */

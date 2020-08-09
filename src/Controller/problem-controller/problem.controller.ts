@@ -116,11 +116,16 @@ export class ProblemController {
       foundProblemDto.title = problemDto.title;
       foundProblemDto.question = problemDto.question;
       foundProblemDto.answer = problemDto.answer;
+      if(foundProblemDto.currQuestionStep !== problemDto.currQuestionStep){
+        //문제 출제텀이 바뀐 경우, 문제출제일도 수정한다.
+        //즉 이게 바뀌면, 바뀐시점부터 새로 타이머를 가동한다
+        foundProblemDto.recentlyQuestionedDate = new Date();
+      }
       foundProblemDto.currQuestionStep = problemDto.currQuestionStep;
       let updatedProblem:ProblemDto = await this.problemDao.update(foundProblemDto._id, foundProblemDto);
 
       this.problemSessionMgr.problemSessionMgrEventEmitter
-        .emit("problem-updated", problemDto);
+        .emit("problem-updated", foundProblemDto);
 
       res.status(HttpStatus.CREATED).send(updatedProblem);
     } catch (e) {
@@ -159,6 +164,7 @@ export class ProblemController {
       this.problemSessionMgr.problemSessionMgrEventEmitter
         .emit("problem-updated", foundProblemDto);
       res.status(HttpStatus.CREATED).send(foundProblemDto);
+      await this.problemSessionMgr.deleteSentMsg(foundProblemDto);
       await this.problemSessionMgr.startProblemInstance(foundProblemDto);
     } catch (e) {
       console.log("ProblemController >> increaseCorrectCount >> e : ",e);
@@ -198,6 +204,7 @@ export class ProblemController {
       this.problemSessionMgr.problemSessionMgrEventEmitter
         .emit("problem-updated", foundProblemDto);
       res.status(HttpStatus.CREATED).send(foundProblemDto);
+      await this.problemSessionMgr.deleteSentMsg(foundProblemDto);
       await this.problemSessionMgr.startProblemInstance(foundProblemDto);
     } catch (e) {
       console.log("ProblemController >> increaseCorrectCount >> e : ",e);

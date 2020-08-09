@@ -5,4 +5,5 @@ export const DiscordUsersSchema = new mongoose.Schema({
   owner   : String,
   discordUserId : String,
   activationKey : String,
+  channelId : String,
 });

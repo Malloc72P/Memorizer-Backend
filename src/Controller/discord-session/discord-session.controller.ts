@@ -54,7 +54,7 @@ export class DiscordSessionController {
       replyMsg.embedFields[3].value = userDto.email;
       replyMsg.embedFields[4].value = userDto.regDate.toDateString();
 
-      await this.discordBotMsgSender.sendMsgWithDiscordId(discordUserDto.discordUserId, replyMsg);
+      await this.discordBotMsgSender.sendMsgWithChannelId(discordUserDto.channelId, replyMsg);
     } catch (e) {
       console.log("ProblemController >> getProblemList >> e : ",e);
       this.errorHandlerService.onErrorState(res, e);

@@ -23,8 +23,8 @@ export class DiscordMsgSenderService {
   public async replyMsg(msg:Discord.Message, discordMsg:DiscordMsg){
     await msg.reply(this.buildEmbedMsg(discordMsg));
   }
-  private async sendMsg(dmChannel:Discord.DMChannel, discordMsg:DiscordMsg){
-    await dmChannel.send(this.buildEmbedMsg(discordMsg));
+  private async sendMsg(discordChannel:Discord.TextChannel, discordMsg:DiscordMsg) :Promise<Discord.Message>{
+    return  await discordChannel.send(this.buildEmbedMsg(discordMsg));
   }
   private async sendTextMsg(dmChannel:Discord.DMChannel, discordMsg:DiscordMsg){
     let textMessage = `${discordMsg.title}\n${discordMsg.description}\n`;
@@ -35,24 +35,24 @@ export class DiscordMsgSenderService {
     await dmChannel.send(textMessage);
   }
 
-  public async sendMsgWithIdToken(idToken, discordMsg:DiscordMsg){
+  public async sendMsgWithIdToken(idToken, discordMsg:DiscordMsg) : Promise<Discord.Message>{
     try {
-      let dmChannel:Discord.DMChannel = await this.getDmChannelByIdToken(idToken);
-      if(!dmChannel){
-        console.log("DiscordSessionMgrService >> sendMsgWithIdToken >> !dmChannel");
+      let discordChannel:Discord.TextChannel = await this.getTextChannelByIdToken(idToken);
+      if(!discordChannel){
+        console.log("DiscordSessionMgrService >> sendMsgWithIdToken >> !discordChannel");
       }
-      await this.sendMsg(dmChannel, discordMsg);
+      return await this.sendMsg(discordChannel, discordMsg);
     } catch (e) {
       console.log("DiscordSessionMgrService >> sendMsgWithIdToken >> e : ",e);
     }
   }
-  public async sendMsgWithDiscordId(discordId, discordMsg:DiscordMsg){
+  public async sendMsgWithChannelId(channelId, discordMsg:DiscordMsg) : Promise<Discord.Message>{
     try {
-      let dmChannel:Discord.DMChannel = await this.getDmChannelByDiscordId(discordId);
-      if(!dmChannel){
+      let textChannel:Discord.TextChannel = await this.getTextChannelByChannelId(channelId);
+      if(!textChannel){
         console.log("DiscordSessionMgrService >> sendMsgWithDiscordId >> !dmChannel");
       }
-      await this.sendMsg(dmChannel, discordMsg);
+      return await this.sendMsg(textChannel, discordMsg);
     } catch (e) {
       console.log("DiscordSessionMgrService >> sendMsgWithDiscordId >> e : ",e);
       console.log("DiscordMsgSenderService >> sendMsgWithDiscordId >> this.buildEmbedMsg(discordMsg) : ",this.buildEmbedMsg(discordMsg));
@@ -82,7 +82,8 @@ export class DiscordMsgSenderService {
       console.log("DiscordMsgSenderService >> sendTextMsgWithDiscordId >> this.buildEmbedMsg(discordMsg) : ",this.buildEmbedMsg(discordMsg));
     }
   }
-  private async getDmChannelByIdToken(idToken) :Promise<Discord.DMChannel>{//메모라이저 IdToken으로 DM찾아주는 메서드
+  //메모라이저 IdToken으로 DM찾아주는 메서드
+  private async getDmChannelByIdToken(idToken) :Promise<Discord.DMChannel>{
     try{
       let discordUserDto:DiscordUsersDto = await this.discordUsersDao.findOneByOwner(idToken);
       if(!discordUserDto){
@@ -101,6 +102,30 @@ export class DiscordMsgSenderService {
       dmChannel = await userInfo.createDM();
     }
     return dmChannel;
+  }
+  //메모라이저 IdToken으로 TextChannel을 찾아주는 메서드
+  private async getTextChannelByIdToken(idToken) :Promise<Discord.TextChannel>{
+    try{
+      let discordUserDto:DiscordUsersDto = await this.discordUsersDao.findOneByOwner(idToken);
+      if(!discordUserDto){
+        return ;
+      }
+      return await this.getTextChannelByChannelId(discordUserDto.channelId);
+    }catch(e){
+      console.log("DiscordSessionMgrService >> getTextChannelByIdToken >> e : ",e);
+    }
+  }
+  private async getTextChannelByChannelId(channelId) :Promise<Discord.TextChannel>{
+    try {
+      let discordChannel: Discord.TextChannel = await this.discordClient.channels.fetch(channelId) as Discord.TextChannel;
+
+      if (!discordChannel) {
+        return;
+      }
+      return discordChannel;
+    } catch (e) {
+      console.log("DiscordSessionMgrService >> getTextChannelByChannelId >> e : ",e);
+    }
   }
   buildEmbedMsg(discordMsg:DiscordMsg) : Discord.MessageEmbed{
     let newEmbedMsg:Discord.MessageEmbed = new Discord.MessageEmbed();
