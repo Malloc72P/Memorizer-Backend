@@ -5,8 +5,9 @@ import { ServerSetting } from './Config/server-setting';
 
 async function bootstrap() {
   const httpsOptions = {
-    key: fs.readFileSync('ssl/server.key.pem'),
-    cert: fs.readFileSync('ssl/server.crt.pem'),
+    ca: fs.readFileSync('ssl/fullchain.pem'),
+    key: fs.readFileSync('ssl/privkey.pem'),
+    cert: fs.readFileSync('ssl/cert.pem'),
   };
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
