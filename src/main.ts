@@ -1,9 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import * as fs from 'fs';
+import { ServerSetting } from './Config/server-setting';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const httpsOptions = {
+    key: fs.readFileSync('ssl/server.key.pem'),
+    cert: fs.readFileSync('ssl/server.crt.pem'),
+  };
+
+  const app = await NestFactory.create(AppModule, { httpsOptions });
+
   app.enableCors();
-  await app.listen(5200);
+  await app.listen(Number(ServerSetting.nestPort.slice(1, ServerSetting.nestPort.length)));
 }
-bootstrap();
+bootstrap().catch(reason => {
+  console.error("bootstrap : ", reason);
+});
