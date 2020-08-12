@@ -30,15 +30,15 @@ export class ServerSetting {
     "loginFailure" : ServerSetting.ngUrl + "/login/failure"
   };
   public static readonly timerStepList:Array<number> = [
-    serverSecretJson.waitTimer_1,
-    serverSecretJson.waitTimer_2,
-    serverSecretJson.waitTimer_3,
-    serverSecretJson.waitTimer_4,
-    serverSecretJson.waitTimer_5,
-    serverSecretJson.waitTimer_6,
-    serverSecretJson.waitTimer_7,
-    serverSecretJson.waitTimer_8,
-    serverSecretJson.waitTimer_9,
-    serverSecretJson.waitTimer_10,
+    10 *  60 * 1000,
+    30 *  60 * 1000,
+    60 *  60 * 1000,
+    2  *  60 * 60 * 1000,
+    4  *  60 * 60 * 1000,
+    6  *  60 * 60 * 1000,
+    12 *  60 * 60 * 1000,
+    24 *  60 * 60 * 1000,
+    2  *  24 * 60 * 60 * 1000,
+    3  *  24 * 60 * 60 * 1000,
   ];
 }
