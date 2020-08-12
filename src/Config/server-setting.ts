@@ -4,13 +4,13 @@ export class ServerSetting {
   public static readonly serverProtocol   = serverSecretJson.serverProtocol;
   public static readonly dbProtocol       = serverSecretJson.dbProtocol;
 
-  public static readonly frontendDomain   = serverSecretJson.frontendDomain;
-  public static readonly backendDomain    = serverSecretJson.backendDomain;
-  public static readonly databaseDomain    = serverSecretJson.databaseDomain;
+  public static readonly frontendDomain   = serverSecretJson.deploy_frontendDomain;
+  public static readonly backendDomain    = serverSecretJson.deploy_backendDomain;
+  public static readonly databaseDomain    = serverSecretJson.deploy_databaseDomain;
 
-  public static readonly ngPort           = serverSecretJson.ngPort;
-  public static readonly nestPort         = serverSecretJson.nestPort;
-  public static readonly dbPort           = serverSecretJson.dbPort;
+  public static readonly ngPort           = serverSecretJson.deploy_ngPort;
+  public static readonly nestPort         = serverSecretJson.deploy_nestPort;
+  public static readonly dbPort           = serverSecretJson.deploy_dbPort;
 
   public static readonly dbName           = serverSecretJson.dbName;
 
