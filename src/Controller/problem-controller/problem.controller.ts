@@ -7,6 +7,7 @@ import { UserDto } from '../../Model/DTO/UserDto/user-dto';
 import { SectionDaoService } from '../../Model/DAO/section-dao/section-dao.service';
 import { ProblemSessionMgrService } from '../../Model/session-manager/problem-session-mgr/problem-session-mgr.service';
 import { ProblemDaoService } from '../../Model/DAO/problem-dao/problem-dao.service';
+import { ServerSetting } from '../../Config/server-setting';
 
 @Controller('problem')
 export class ProblemController {
@@ -126,7 +127,8 @@ export class ProblemController {
       this.problemSessionMgr.problemSessionMgrEventEmitter
         .emit("problem-updated", foundProblemDto);
 
-      res.status(HttpStatus.CREATED).send(updatedProblem);
+      res.status(HttpStatus.CREATED).send(foundProblemDto);
+      await this.problemSessionMgr.startProblemInstance(foundProblemDto);
     } catch (e) {
       console.log("ProblemController >> updateProblemList >> e : ",e);
       this.errorHandlerService.onErrorState(res, e);
@@ -230,6 +232,21 @@ export class ProblemController {
       this.problemSessionMgr.problemSessionMgrEventEmitter
         .emit("problem-deleted", problemDto);
       res.status(HttpStatus.CREATED).send();
+    } catch (e) {
+      console.log("ProblemController >> deleteProblemList >> e : ",e);
+      this.errorHandlerService.onErrorState(res, e);
+    }
+  }
+  @Get("waitTimeList")
+  @UseGuards(AuthGuard('jwt'))
+  async getWaitTimerList(@Req() req, @Res() res)
+  {
+    try { //idToken 획득
+      let thirdPartId = req.user;
+
+      //Problem 삭제 후 성공메세지 응답
+      let waitTimerList = ServerSetting.timerStepList;
+      res.status(HttpStatus.CREATED).send(waitTimerList);
     } catch (e) {
       console.log("ProblemController >> deleteProblemList >> e : ",e);
       this.errorHandlerService.onErrorState(res, e);
