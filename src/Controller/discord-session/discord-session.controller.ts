@@ -41,7 +41,6 @@ export class DiscordSessionController {
       discordUserDto.owner = userDto.idToken;
 
       let updateRes = await this.discordUsersDao.update(discordUserDto._id, discordUserDto);
-      console.log("DiscordSessionController >> onLinkDiscordAccountRequest >> updateRes : ",updateRes);
       if(updateRes.ok !== 1){
         //업데이트 실패
         this.errorHandlerService.onErrorState(res, "update failed");

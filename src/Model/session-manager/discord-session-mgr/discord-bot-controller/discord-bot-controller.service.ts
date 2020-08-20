@@ -33,7 +33,6 @@ export class DiscordBotControllerService {
 
   //요청에 맞는 컨트롤러를 실행시켜주는 메서드
   public async processBotRequest(msg:Discord.Message){
-    console.log("DiscordBotControllerService >> processBotRequest >> msg : ",msg);
     let botCommand:BotCommand = MsgParser.parseMsg(msg);
     if(botCommand === null){
       return;
@@ -148,7 +147,7 @@ export class DiscordBotControllerService {
         return ;
       }
       let replyMsg:DiscordMsg = this.replyMsgMgr.getKrReplyMsg(DiscordReplyMsgEnum.requestWhoAmI);
-      console.log("DiscordBotControllerService >> onWhoAmI >> replyMsg : ",replyMsg);
+
       replyMsg.embedFields[1].value = memorizerUserDto.userName;
       replyMsg.embedFields[2].value = memorizerUserDto.email;
       replyMsg.embedFields[3].value = memorizerUserDto.regDate.toDateString();

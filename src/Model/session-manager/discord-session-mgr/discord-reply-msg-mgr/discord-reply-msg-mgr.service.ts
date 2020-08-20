@@ -22,7 +22,6 @@ export class DiscordReplyMsgMgrService {
       this.kr.set(DiscordReplyMsgEnum[discordMsg.command],
         new DiscordMsg(discordMsg.title, discordMsg.description, discordMsg.embedFields, discordMsg.color));
     }
-    console.log("DiscordReplyMsgMgrService >> constructor >> kr : ",this.kr);
   }
   getKrReplyMsg(command:DiscordReplyMsgEnum) : DiscordMsg{
     let discordMsg:DiscordMsg = new DiscordMsg();

@@ -53,7 +53,6 @@ export class DiscordSessionMgrService {
     });
   }
   onMsg(){
-    console.log("DiscordSessionMgrService >> onMsg >> 진입함");
     this.discordClient.on("message", (msg:Discord.Message)=>{
       this.botController.processBotRequest(msg);
     });
