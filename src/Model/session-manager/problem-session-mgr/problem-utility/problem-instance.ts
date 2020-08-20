@@ -14,66 +14,52 @@ export class ProblemInstance {
   constructor(problemDto: ProblemDto) {
     this.problemDto = problemDto;
   }
-  stop(){
-    if (this.timerSubscription) {
-      this.timerSubscription.unsubscribe;
-    }
-  }
-  start(problemDto?:ProblemDto){
+
+  getTimerKey(problemDto?:ProblemDto){
     if(problemDto){
       this.problemDto = problemDto;
     }
-    this.stop();
-    let timerValue = ProblemInstance.getQuestionWaitTime(this.problemDto);
-
-    if(timerValue < 0 ){
-      //이미 출제된 경우임
-      return;
-    }
-
-    this.timerSource = timer(timerValue);
-
-
-    this.timerSubscription = this.timerSource.subscribe((res)=>{
-      ProblemInstance.problemInstanceEventEmitter.emit("timer-terminated", this.problemDto);
-      this.timerSubscription.unsubscribe();
-    });
+    return ProblemInstance.GetTimerKey(problemDto);
   }
-  updateTimer(problemDto:ProblemDto){
-    console.log("ProblemInstance >> updateTimer >> problemDto.currQuestionStep : ",problemDto.currQuestionStep);
-    console.log("ProblemInstance >> updateTimer >> this.problemDto.currQuestionStep : ",this.problemDto.currQuestionStep);
-    if(problemDto.currQuestionStep !== this.problemDto.currQuestionStep){
-      this.timerSubscription.unsubscribe();
-      this.problemDto = problemDto;
-      this.start();
-    }
+  public static GetTimerKey(problemDto:ProblemDto){
+    let waitMilliTime = ProblemInstance.GetRQD(problemDto.recentlyQuestionedDate).getTime() + ProblemInstance.getWaitTime(problemDto);
+    let waitTime:Date = new Date(waitMilliTime);
+    let waitTimeKey = ProblemInstance.BuildKeyTime(waitTime)
+
+    return waitTimeKey;
   }
-  resetTimer(){
-    this.timerSubscription.unsubscribe();
-    this.start();
+
+  public static BuildKeyTime(date:Date){
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}-${date.getHours()}-${date.getMinutes()}`;
   }
-  delete(){
-    this.timerSubscription.unsubscribe();
-  }
-  //문제를 출제하는데 대기 해야 하는 시간을 계산하고 리턴함.
-  //만약 0보다 작으면 음수 값이 리턴될 것 임
-  public static getQuestionWaitTime(problemDto:ProblemDto){
+  public static getWaitTime(problemDto:ProblemDto){
     let timerValue = 0;//문제 출제까지 대기해야 하는 시간
     if(problemDto.currQuestionStep >= 10){
       timerValue = ServerSetting.timerStepList[9];
     }else{
       timerValue = ServerSetting.timerStepList[problemDto.currQuestionStep];
     }
+    return timerValue;
+  }
+  //문제를 출제하는데 대기 해야 하는 시간을 계산하고 리턴함.
+  //만약 0보다 작으면 음수 값이 리턴될 것 임
+  public static getQuestionWaitTime(problemDto:ProblemDto){
+    //문제 출제까지 대기해야 하는 시간
+    let timerValue = ProblemInstance.getWaitTime(problemDto);
+
     let currTime = new Date();
     //recently Questioned Date. 최근 문제출제한 시간 값
-    let rQD = problemDto.recentlyQuestionedDate;
+    let rQD = ProblemInstance.GetRQD(problemDto.recentlyQuestionedDate);
+
     // let waitTime = rQD + timerValue - currTime;
     let waitTime = rQD.getTime() + timerValue - currTime.getTime();
-
-    console.log("ProblemInstance >> getQuestionWaitTime >> waitTime : ",waitTime);
-    // console.log("ProblemInstance >> getQuestionWaitTime >> recentlyQuestionedDate : ",this.problemDto.recentlyQuestionedDate.getMilliseconds());
-    // console.log("ProblemInstance >> getQuestionWaitTime >> timerValue : ",timerValue);
-    // console.log("ProblemInstance >> getQuestionWaitTime >> currTime.getMilliseconds() : ",currTime);
     return waitTime;
+  }
+  private static GetRQD(rqd){
+    if (rqd instanceof Date) {
+      return rqd;
+    }else{
+      return new Date(rqd);
+    }
   }
 }

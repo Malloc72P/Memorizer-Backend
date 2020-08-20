@@ -9,7 +9,7 @@ import {EventEmitter} from "events";
 //디스코드 봇 초기화 과정을 담당하는 서비스
 @Injectable()
 export class DiscordSessionMgrService {
-  private readonly discordClient:Discord.Client = null;
+  public readonly discordClient:Discord.Client = null;
   private discordBotInfo:Discord.User = null;
   public discordBotEventEmitter:EventEmitter = new EventEmitter();
 

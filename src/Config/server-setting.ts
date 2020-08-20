@@ -29,6 +29,7 @@ export class ServerSetting {
     "loginSuccess" : ServerSetting.ngUrl + "/login/success/",
     "loginFailure" : ServerSetting.ngUrl + "/login/failure"
   };
+
   public static readonly timerStepList:Array<number> = [
     10 *  60 * 1000,
     30 *  60 * 1000,

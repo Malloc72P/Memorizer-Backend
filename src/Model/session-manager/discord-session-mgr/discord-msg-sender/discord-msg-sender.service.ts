@@ -104,7 +104,7 @@ export class DiscordMsgSenderService {
     return dmChannel;
   }
   //메모라이저 IdToken으로 TextChannel을 찾아주는 메서드
-  private async getTextChannelByIdToken(idToken) :Promise<Discord.TextChannel>{
+  public async getTextChannelByIdToken(idToken) :Promise<Discord.TextChannel>{
     try{
       let discordUserDto:DiscordUsersDto = await this.discordUsersDao.findOneByOwner(idToken);
       if(!discordUserDto){
@@ -115,7 +115,7 @@ export class DiscordMsgSenderService {
       console.log("DiscordSessionMgrService >> getTextChannelByIdToken >> e : ",e);
     }
   }
-  private async getTextChannelByChannelId(channelId) :Promise<Discord.TextChannel>{
+  public async getTextChannelByChannelId(channelId) :Promise<Discord.TextChannel>{
     try {
       let discordChannel: Discord.TextChannel = await this.discordClient.channels.fetch(channelId) as Discord.TextChannel;
 

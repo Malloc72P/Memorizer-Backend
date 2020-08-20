@@ -113,6 +113,7 @@ export class ProblemController {
       //Problem 업데이트 후, 반영된 개체 응답하기
       let foundProblemDto:ProblemDto = await this.problemDao.findOne(problemDto._id);
       //해당 api는 제목, 지문, 해답, 현재 출제간격레벨만 수정가능
+      let copiedProblemDto:ProblemDto = ProblemDto.clone(foundProblemDto);
       foundProblemDto.title = problemDto.title;
       foundProblemDto.question = problemDto.question;
       foundProblemDto.answer = problemDto.answer;
@@ -125,10 +126,10 @@ export class ProblemController {
       let updatedProblem:ProblemDto = await this.problemDao.update(foundProblemDto._id, foundProblemDto);
 
       this.problemSessionMgr.problemSessionMgrEventEmitter
-        .emit("problem-updated", foundProblemDto);
+        .emit("problem-updated", [copiedProblemDto, foundProblemDto]);
 
       res.status(HttpStatus.CREATED).send(foundProblemDto);
-      await this.problemSessionMgr.startProblemInstance(foundProblemDto);
+      // await this.problemSessionMgr.startProblemInstance(copiedProblemDto, foundProblemDto);
     } catch (e) {
       console.log("ProblemController >> updateProblemList >> e : ",e);
       this.errorHandlerService.onErrorState(res, e);
@@ -154,6 +155,7 @@ export class ProblemController {
 
       //Problem 업데이트 후, 반영된 개체 응답하기
       let foundProblemDto:ProblemDto = await this.problemDao.findOne(problemDto._id);
+      let copiedProblemDto:ProblemDto = ProblemDto.clone(foundProblemDto);
       //해당 api는 correctCound를 1만큼 증가시키는것만 가능
       foundProblemDto.correctCount++;
       foundProblemDto.questionedCount++;
@@ -163,10 +165,10 @@ export class ProblemController {
       foundProblemDto = await this.problemDao.findOne(problemDto._id);
 
       this.problemSessionMgr.problemSessionMgrEventEmitter
-        .emit("problem-updated", foundProblemDto);
+        .emit("problem-updated", [copiedProblemDto, foundProblemDto]);
       res.status(HttpStatus.CREATED).send(foundProblemDto);
       await this.problemSessionMgr.deleteSentMsg(foundProblemDto);
-      await this.problemSessionMgr.startProblemInstance(foundProblemDto);
+      // await this.problemSessionMgr.startProblemInstance(copiedProblemDto, foundProblemDto);
     } catch (e) {
       console.log("ProblemController >> increaseCorrectCount >> e : ",e);
       this.errorHandlerService.onErrorState(res, e);
@@ -192,6 +194,7 @@ export class ProblemController {
 
       //Problem 업데이트 후, 반영된 개체 응답하기
       let foundProblemDto:ProblemDto = await this.problemDao.findOne(problemDto._id);
+      let copiedProblemDto:ProblemDto = ProblemDto.clone(foundProblemDto);
       //해당 api는 incorrectCount를 1만큼 증가시키는것만 가능
       foundProblemDto.incorrectCount++;
       foundProblemDto.questionedCount++;
@@ -203,10 +206,10 @@ export class ProblemController {
       foundProblemDto = await this.problemDao.findOne(problemDto._id);
 
       this.problemSessionMgr.problemSessionMgrEventEmitter
-        .emit("problem-updated", foundProblemDto);
+        .emit("problem-updated", [copiedProblemDto, foundProblemDto]);
       res.status(HttpStatus.CREATED).send(foundProblemDto);
       await this.problemSessionMgr.deleteSentMsg(foundProblemDto);
-      await this.problemSessionMgr.startProblemInstance(foundProblemDto);
+      // await this.problemSessionMgr.startProblemInstance(copiedProblemDto, foundProblemDto);
     } catch (e) {
       console.log("ProblemController >> increaseCorrectCount >> e : ",e);
       this.errorHandlerService.onErrorState(res, e);
