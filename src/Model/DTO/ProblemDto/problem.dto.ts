@@ -24,7 +24,8 @@ export class ProblemDto {
   public recentlyQuestionedDate;
 
 
-  constructor(id?, owner?, title?, belongingSectionId?, createdDate?, questionedCount?, correctCount?, incorrectCount?, question?, answer?, currQuestionStep?, recentlyQuestionedDate?) {
+  constructor(id?, owner?, title?, belongingSectionId?, createdDate?, questionedCount?,
+              correctCount?, incorrectCount?, question?, answer?, currQuestionStep?, recentlyQuestionedDate?) {
     this._id = id;
     this.owner = owner;
     this.title = title;
@@ -37,5 +38,21 @@ export class ProblemDto {
     this.answer = answer;
     this.currQuestionStep = currQuestionStep;
     this.recentlyQuestionedDate = recentlyQuestionedDate;
+  }
+  public static clone(problemDto:ProblemDto){
+    return new ProblemDto(
+      problemDto._id,
+      problemDto.owner.slice(),
+      problemDto.title.slice(),
+      problemDto.belongingSectionId.slice(),
+      new Date(problemDto.createdDate.getTime()),
+      problemDto.questionedCount,
+      problemDto.correctCount,
+      problemDto.incorrectCount,
+      problemDto.question.slice(),
+      problemDto.answer.slice(),
+      problemDto.currQuestionStep,
+      new Date(problemDto.recentlyQuestionedDate.getTime()),
+    );
   }
 }

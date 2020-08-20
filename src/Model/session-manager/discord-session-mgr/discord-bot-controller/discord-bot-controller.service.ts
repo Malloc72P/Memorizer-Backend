@@ -110,12 +110,12 @@ export class DiscordBotControllerService {
         if ((discordUserDto && discordUserDto.isAvail) || (discordUserDto && !discordUserDto.isAvail)) {
           //이미 연동된 경우도 포함. 이 경우엔 기존 연동을 해제하고 새 채널과 연동하게 해준다
           //연동시도를 해서 데이터는 있으나 활성화는 안된상태
-          console.log(`new channel : ${msg.channel.id}`);
+          // console.log(`new channel : ${msg.channel.id}`);
           discordUserDto.activationKey = activationKey;
           discordUserDto.channelId = msg.channel.id;
           await this.discordUsersDao.update(discordUserDto._id, discordUserDto);
         } else {
-          console.log('DiscordSessionMgrService >> onRegisterCommand >> 연동요청이 없었던 경우');
+          // console.log('DiscordSessionMgrService >> onRegisterCommand >> 연동요청이 없었던 경우');
           //연동요청이 없었던 경우엔 discordUserDto 생성
           let newDiscordUserDto: DiscordUsersDto = new DiscordUsersDto();
           newDiscordUserDto.isAvail = false;

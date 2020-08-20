@@ -13,19 +13,26 @@ import { DiscordSessionMgrService } from '../discord-session-mgr/discord-session
 import * as Discord from "discord.js";
 import { DiscordMsg } from '../discord-session-mgr/discord-utility/discord-msg/discord-msg';
 import { ServerSetting } from '../../../Config/server-setting';
-import { UserDto } from '../../DTO/UserDto/user-dto';
+
 import { DiscordUsersDto } from '../../DTO/DiscordUsersDto/discord-users.dto';
 import { EventEmitter } from 'events';
-import { Schema, Types } from 'mongoose';
+
 import {ObjectId} from 'mongodb';
+import { Subscription, timer } from 'rxjs';
+import Instance = WebAssembly.Instance;
+import { UserDto } from '../../DTO/UserDto/user-dto';
 
 @Injectable()
 export class ProblemSessionMgrService {
-  private problemInstanceMap:Map<any, ProblemInstance> = new Map<any, ProblemInstance>();
+  private discordClient:Discord.Client;
+  private problemInstanceMap:Map<any, Array<ProblemInstance>> = new Map<any, Array<ProblemInstance>>();
+  private pollingrate = 10 * 1000;
   //문제출제로 인해 전송된 메세지를 저장하는 맵.
   //사용자가 문제를 맞추는 경우, 해당하는 메세지를 지운다.
-  private sentMessageMap:Map<any, Discord.Message> = new Map<any, Discord.Message>();
+  private sentMessageMap:Map<any, any> = new Map<any, any>();
   public problemSessionMgrEventEmitter:EventEmitter = new EventEmitter();
+  private problemTimer;
+  private problemTimerSubscription:Subscription;
   constructor(
     private userDao:UserDaoService,
     private discordUsersDao:DiscordUsersDaoService,
@@ -35,21 +42,45 @@ export class ProblemSessionMgrService {
     private discordSessionMgr:DiscordSessionMgrService,
   ){
     this.discordSessionMgr.discordBotEventEmitter.addListener("ready", (discordClient:Discord.Client)=>{
+      this.discordClient = discordClient;
       this.initProblemSessionMgrService();
+      this.initTimer();
     });
     this.problemSessionMgrEventEmitter.addListener("problem-created",
       (problemDto:ProblemDto)=>{
         this.createProblemInstance(problemDto);
     });
     this.problemSessionMgrEventEmitter.addListener("problem-updated",
-      (problemDto:ProblemDto)=>{
-        this.updateProblemInstance(problemDto);
+      (problemDtoArr:Array<ProblemDto>)=>{
+        this.updateProblemInstance(problemDtoArr[0], problemDtoArr[1]);
       });
     this.problemSessionMgrEventEmitter.addListener("problem-deleted",
       (problemDto:ProblemDto)=>{
         this.deleteProblemInstance(problemDto);
       });
   }//constructor
+  initTimer(){
+    this.problemTimer = timer(this.pollingrate, this.pollingrate);
+    this.problemTimerSubscription = this.problemTimer.subscribe((val)=>{
+      this.onTick();
+    });
+  }
+  private onTick(){
+    let timeKey = ProblemInstance.BuildKeyTime(new Date());
+    console.log("InstanceMap : ,",this.problemInstanceMap);
+    console.log("sentMessageMap : ,",this.sentMessageMap);
+    console.log(`timeKey : ${timeKey}`);
+    if(this.problemInstanceMap.has(timeKey)){
+      let instanceArr:Array<ProblemInstance> = this.problemInstanceMap.get(timeKey);
+      this.problemInstanceMap.delete(timeKey);
+
+      for (let currInstance of instanceArr){
+        this.doProblemTest(currInstance.problemDto).then(()=>{
+          //after Message Sending
+        });
+      }
+    }
+  }
   initProblemSessionMgrService(){
     //문제출제 이벤트 발생기에 리스너를 추가함
     ProblemInstance.problemInstanceEventEmitter.addListener("timer-terminated",
@@ -84,7 +115,7 @@ export class ProblemSessionMgrService {
         return;
       }
 
-      console.log('ProblemSessionMgrService >> timer-terminated >> subscribe >> problemDto : ', problemDto);
+      // console.log('ProblemSessionMgrService >> timer-terminated >> subscribe >> problemDto : ', problemDto);
       let problemMsg: DiscordMsg = this.replyMsgMgr.getKrReplyMsg(DiscordReplyMsgEnum.prepareTest);
       problemMsg.title += problemDto.title;
       problemMsg.description += problemDto.question;
@@ -93,7 +124,8 @@ export class ProblemSessionMgrService {
       problemMsg.embedFields[2].value = problemDto.incorrectCount;
       problemMsg.link = ServerSetting.ngUrl + '/problem/' + problemDto.belongingSectionId + '/' + problemDto._id;
       let sentMsg:Discord.Message = await this.discordMsgSender.sendMsgWithIdToken(problemDto.owner, problemMsg);
-      this.sentMessageMap.set(this.getProblemDtoId(problemDto), sentMsg);
+      // console.log("sentMsg : ", sentMsg);
+      this.sentMessageMap.set(this.getProblemDtoId(problemDto), sentMsg.id);
     } catch (e) {
       console.log("problemSessionMgr >> updateProblemInstance >> e : ",e);
     }
@@ -107,57 +139,85 @@ export class ProblemSessionMgrService {
     for (let currProblemDto of problemDtoList){
       this.createProblemInstance(currProblemDto);
     }//for let currProblemDto of problemDtoList
-
+    // console.log("problemList : ",this.problemInstanceMap);
   }
   createProblemInstance(problemDto:ProblemDto){
     let newProblemInstance:ProblemInstance = new ProblemInstance(problemDto);
-    let key = this.getProblemDtoId(problemDto);
-    this.problemInstanceMap.set(key, newProblemInstance);
-    newProblemInstance.start();
-  }
-  updateProblemInstance(problemDto:ProblemDto){
-    console.log("problemSessionMgr >> updateProblemInstance >> 호출됨");
-    let foundProblemInstance:ProblemInstance = this.problemInstanceMap.get(problemDto._id);
-    if(foundProblemInstance){
-      foundProblemInstance.updateTimer(problemDto);
+
+    let remainTime = ProblemInstance.getQuestionWaitTime(problemDto);
+    if(remainTime < 0){
+      return;
     }
-    // else{
-    //   //과거에 타이머가 끝나서 인스턴스화되지 않은 경우임.
-    //   //이 경우, 새 인스턴스를 만든다
-    //   let newProblemInstance:ProblemInstance = new ProblemInstance(problemDto);
-    //   this.problemInstanceMap.set(problemDto._id, newProblemInstance);
-    //   newProblemInstance.start();
+    let key = newProblemInstance.getTimerKey(problemDto);
+    let instanceArr:Array<ProblemInstance> = this.problemInstanceMap.get(key);
+    if(instanceArr){
+      instanceArr.push(newProblemInstance);
+    }else {
+      instanceArr = new Array<ProblemInstance>();
+      instanceArr.push(newProblemInstance);
+      this.problemInstanceMap.set(key, instanceArr);
+    }
+  }
+  updateProblemInstance( prevProblemDto:ProblemDto, updatedProblemDto:ProblemDto ){
+    // console.log("problemSessionMgr >> updateProblemInstance >> 호출됨");
+    let key = ProblemInstance.GetTimerKey(prevProblemDto);
+    let instanceArr:Array<ProblemInstance> = this.problemInstanceMap.get(key);
+    if(instanceArr){
+      let idx = instanceArr.length;
+      while (idx--){
+        let currInstance:ProblemInstance = instanceArr[idx];
+        if(currInstance.problemDto._id.toString() === prevProblemDto._id.toString()){
+          instanceArr.splice(idx, 1);
+        }
+      }
+    }
+    this.createProblemInstance(updatedProblemDto);
+    if(instanceArr && instanceArr.length <= 0){
+      this.problemInstanceMap.delete(key);
+    }
+    // let foundProblemInstance:ProblemInstance = this.problemInstanceMap.get(problemDto._id);
+    // if(foundProblemInstance){
+    //   foundProblemInstance.updateTimer(problemDto);
     // }
   }
   deleteProblemInstance(problemDto:ProblemDto){
-    console.log("problemSessionMgr >> deleteProblemInstance >> 호출됨");
-    let foundProblemInstance:ProblemInstance = this.problemInstanceMap.get(problemDto._id);
-    if(foundProblemInstance){
-      foundProblemInstance.delete();
-      this.problemInstanceMap.delete(problemDto._id);
+    let key = ProblemInstance.GetTimerKey(problemDto);
+    let instanceArr:Array<ProblemInstance> = this.problemInstanceMap.get(key);
+    if(instanceArr){
+      let idx = instanceArr.length;
+      while (idx--){
+        let currInstance:ProblemInstance = instanceArr[idx];
+        if(currInstance.problemDto._id === problemDto._id){
+          instanceArr.splice(idx, 1);
+        }
+      }
+      if(instanceArr.length <= 0){
+        this.problemInstanceMap.delete(key);
+      }
     }
   }
-  async startProblemInstance(problemDto:ProblemDto){
-    let foundProblemDto:ProblemDto = await this.problemDao.findOne(problemDto._id);
-    let foundProblemInstance:ProblemInstance = this.problemInstanceMap
-      .get(this.getProblemDtoId(problemDto));
-    if(!foundProblemInstance){
-      return;
-    }
-    foundProblemInstance.start(foundProblemDto);
-  }
+
   getProblemDtoId(problemDto:ProblemDto){
     let key = "";
     if(problemDto._id instanceof ObjectId){
       key = problemDto._id.toString();
     }else key = problemDto._id;
+    return key;
   }
   async deleteSentMsg(problemDto:ProblemDto){
     //출제된 문제의 메세지가 서버에 저장되어 있는지 확인한다.
     //있다면, 해당 메세지를 지워준다.
-    let sentMsg:Discord.Message = this.sentMessageMap.get(this.getProblemDtoId(problemDto));
-    if(sentMsg){
-      await sentMsg.delete();
+    try {
+      let sentMsgId = this.sentMessageMap.get(this.getProblemDtoId(problemDto));
+      if (sentMsgId) {
+        let textChannel:Discord.TextChannel = await this.discordMsgSender.getTextChannelByIdToken(problemDto.owner);
+        let message:Discord.Message = await textChannel.messages.fetch(sentMsgId);
+        if(message){
+          await message.delete();
+        }
+      }
+    } catch (e) {
+      console.log("problemSessionMgrService >>> deleteSentMsg >>> e : ",e);
     }
   }
 }
