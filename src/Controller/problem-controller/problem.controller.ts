@@ -215,6 +215,56 @@ export class ProblemController {
       this.errorHandlerService.onErrorState(res, e);
     }
   }
+  @Patch("resetTimer")
+  @UseGuards(AuthGuard('jwt'))
+  async resetTimer(@Req() req, @Res() res, @Body() problemDtoList:Array<ProblemDto>)
+  {
+    try { //idToken 획득
+      let thirdPartId = req.user;
+
+      //ProblemDto 검사
+      if(!problemDtoList){
+        this.errorHandlerService.onErrorState(res,  "isValidProblemDtoList");
+        return ;
+      }
+      //권한 검사
+      for(let currProblem of problemDtoList) {
+        if (!await this.isValidAccess(thirdPartId, currProblem)) {
+          this.errorHandlerService.onForbiddenRequest(res, 'isValidAccess');
+          return;
+        }
+      }
+      let updatedProblemList:Array<ProblemDto> = new Array<ProblemDto>();
+      for(let currProblem of problemDtoList) {
+        //Problem 업데이트 후, 반영된 개체 응답하기
+        let foundProblemDto:ProblemDto = await this.problemDao.findOne(currProblem._id);
+        let copiedProblemDto:ProblemDto = ProblemDto.clone(foundProblemDto);
+        //해당 api는 timer를 리셋하는것만 가능
+        foundProblemDto.recentlyQuestionedDate = new Date();
+        await this.problemDao.update(foundProblemDto._id, foundProblemDto);
+
+        this.problemSessionMgr.problemSessionMgrEventEmitter
+          .emit("problem-updated", [copiedProblemDto, foundProblemDto]);
+
+        updatedProblemList.push(foundProblemDto);
+      }
+
+
+      res.status(HttpStatus.CREATED).send(updatedProblemList);
+      for(let currProblem of updatedProblemList) {
+        try {
+          await this.problemSessionMgr.deleteSentMsg(currProblem);
+        } catch (e) {
+          console.error("resetTimer >>> ",e);
+        }
+      }
+      // await this.problemSessionMgr.startProblemInstance(copiedProblemDto, foundProblemDto);
+    } catch (e) {
+      console.log("ProblemController >> increaseCorrectCount >> e : ",e);
+      this.errorHandlerService.onErrorState(res, e);
+    }
+  }
+
   @Delete()
   @UseGuards(AuthGuard('jwt'))
   async deleteProblem(@Req() req, @Res() res, @Body() problemDto:ProblemDto)
@@ -265,6 +315,7 @@ export class ProblemController {
     }
     return true
   }
+
   private async isValidAccess(idToken, problemDto:ProblemDto){
     //수행하기에 권한이 충분한지 검사하는 메서드
     //여기선 수정,삭제하려는 섹션의 소유자가 요청자와 동일한지 검사함.

@@ -19,8 +19,6 @@ import { EventEmitter } from 'events';
 
 import {ObjectId} from 'mongodb';
 import { Subscription, timer } from 'rxjs';
-import Instance = WebAssembly.Instance;
-import { UserDto } from '../../DTO/UserDto/user-dto';
 
 @Injectable()
 export class ProblemSessionMgrService {
