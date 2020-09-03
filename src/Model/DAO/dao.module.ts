@@ -18,6 +18,7 @@ import { ProblemSessionMgrModule } from '../session-manager/problem-session-mgr/
       {
         useNewUrlParser: true,
         useUnifiedTopology : true,
+        authSource: 'admin',
       }),
     MongooseModule.forFeature(
       [
