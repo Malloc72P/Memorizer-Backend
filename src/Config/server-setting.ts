@@ -13,9 +13,10 @@ export class ServerSetting {
   public static readonly dbPort           = serverSecretJson.deploy_dbPort;
 
   public static readonly dbName           = serverSecretJson.dbName;
+  public static readonly dbAccount        = serverSecretJson.dbAccount;
 
   public static readonly ngUrl            = ServerSetting.serverProtocol + ServerSetting.frontendDomain + ServerSetting.ngPort;
-  public static readonly dbUrl            = ServerSetting.dbProtocol + ServerSetting.databaseDomain + ServerSetting.dbPort + ServerSetting.dbName;
+  public static readonly dbUrl            = ServerSetting.dbProtocol + ServerSetting.dbAccount + "@" + ServerSetting.databaseDomain + ServerSetting.dbPort + ServerSetting.dbName;
   public static readonly nestUrl          = ServerSetting.serverProtocol + ServerSetting.backendDomain + ServerSetting.nestPort;
 
   public static readonly googleCallbackURL      = ServerSetting.nestUrl + "/auth/google/callback";
